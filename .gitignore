@@ -1,0 +1,8 @@
+debug
+debug.test
+npm-debug.log*
+.DS_Store
+.npm
+.idea
+
+node_modules/
