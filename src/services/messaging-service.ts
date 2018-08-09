@@ -91,6 +91,7 @@ export class MessagingService {
 	}
 
 	private ensureValidConfig() {
+		this.config.instanceId = this.config.instanceId || this.helpersService.shortId();
 		this.config.connectedDevices = this.config.connectedDevices || {};
 		this.config.getInitialFiles = this.config.getInitialFiles || (() => []);
 		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
