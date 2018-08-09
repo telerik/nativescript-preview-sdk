@@ -8,6 +8,7 @@ import { Device } from "../models/device";
 import { HereNowResponse } from "../models/here-now-response";
 import { FilePayload } from "../models/file-payload";
 import * as PubNub from "pubnub";
+import { SdkCallbacks } from "../models/sdk-callbacks";
 
 export class MessagingService {
     private static PubNubInitialized = false;
@@ -18,23 +19,21 @@ export class MessagingService {
     private devicesService: DevicesService
 
 	constructor() {
-        // TODO: singletons
         this.helpersService = new HelpersService();
         this.devicesService = new DevicesService(this.helpersService);
 	}
 
-    // TODO: validate config
 	initialize(config: Config): void {
         this.config = config;
-        this.config.connectedDevices = this.config.connectedDevices || {};
+        this.ensureValidConfig();
 
 		if (MessagingService.PubNubInitialized) {
 			return;
 		}
 
 		this.pubNub = new PubNub({
-			publishKey: this.config.pKey,
-			subscribeKey: this.config.sKey,
+			publishKey: this.config.pubnubPublishKey,
+			subscribeKey: this.config.pubnubSubscribeKey,
 			ssl: true,
 			restore: true
 		});
@@ -91,11 +90,32 @@ export class MessagingService {
 		MessagingService.PubNubInitialized = true;
 	}
 
+	private ensureValidConfig() {
+		this.config.connectedDevices = this.config.connectedDevices || {};
+		this.config.getInitialFiles = this.config.getInitialFiles || (() => []);
+		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
+		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => {});
+		this.config.callbacks.onDeviceConnected = this.config.callbacks.onDeviceConnected || (() => {});
+		this.config.callbacks.onDevicesPresence = this.config.callbacks.onDevicesPresence || (() => {});
+		this.config.callbacks.onLogMessage = this.config.callbacks.onLogMessage || (() => {});
+		this.config.callbacks.onLogSdkMessage = this.config.callbacks.onLogSdkMessage || (() => {});
+		this.config.callbacks.onRestartMessage = this.config.callbacks.onRestartMessage || (() => {});
+		this.config.callbacks.onSendingChange = this.config.callbacks.onSendingChange || (() => {});
+		this.config.callbacks.onUncaughtErrorMessage = this.config.callbacks.onUncaughtErrorMessage || (() => {});
+		if (!this.config.pubnubPublishKey) {
+			throw new Error("Pubnub publish key is required when creating a messaging service.");
+		}
+
+		if (!this.config.pubnubSubscribeKey) {
+			throw new Error("Pubnub subscribe key is required when creating a messaging service.");
+		}
+	}
+
 	sendInitialFiles(instanceId: string) {
 		this.handleSendInitialFiles({}, instanceId, 0, true);
 	}
 
-	applyChanges(instanceId: string, nodes: FilePayload[], restart: () => void, done: (err) => void): void {
+	applyChanges(instanceId: string, nodes: FilePayload[], done: (err) => void): void {
 		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes).then(() => {
 			done(null);
 		}).catch(e => done(e));
@@ -228,8 +248,8 @@ export class MessagingService {
 
 	private getPubNubMetaData(deviceIdMeta?: string): any {
 		let meta: any = {
-			msvi: this.config.msviOS,
-			msva: this.config.msvAndroid
+			msvi: Constants.МsviOS,
+			msva: Constants.MsvAndroid
 		};
 		if (deviceIdMeta) {
 			meta = {
@@ -277,7 +297,7 @@ export class MessagingService {
 			}
 
 			let isAndroid = this.helpersService.areCaseInsensitiveEqual(device.platform, "android");
-			let minimumSupportedVersion = isAndroid ? this.config.msvAndroid : this.config.msviOS;
+			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
 			if (!device.version || !device.platform || device.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
 				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", deprecatedAppFiles, data.publisher).then(() => { });

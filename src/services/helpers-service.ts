@@ -1,11 +1,9 @@
-// TODO: remove from scripts
 import * as shortId from "shortid";
 
 declare function escape(s: string): string;
 declare function unescape(s: string): string;
 
 export class HelpersService {
-	// TODO: why manually?
 	private keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 	areCaseInsensitiveEqual(value1: string, value2: string): boolean {

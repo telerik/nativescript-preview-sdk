@@ -6,9 +6,7 @@ export class Config {
 	instanceId: string;
 	getInitialFiles: () => FilePayload[];
 	callbacks: SdkCallbacks
-	pKey: string;
-	sKey: string;
-	msviOS: number;
-    msvAndroid: number;
+	pubnubPublishKey: string;
+	pubnubSubscribeKey: string;
     connectedDevices: ConnectedDevices;
 }
