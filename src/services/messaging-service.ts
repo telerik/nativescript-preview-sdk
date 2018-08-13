@@ -11,21 +11,21 @@ import * as PubNub from "pubnub";
 import { SdkCallbacks } from "../models/sdk-callbacks";
 
 export class MessagingService {
-    private static PubNubInitialized = false;
+	private static PubNubInitialized = false;
 
-    private pubNub: PubNub;
-    private config: Config;
-    private helpersService: HelpersService;
-    private devicesService: DevicesService
+	private pubNub: PubNub;
+	private config: Config;
+	private helpersService: HelpersService;
+	private devicesService: DevicesService
 
 	constructor() {
-        this.helpersService = new HelpersService();
-        this.devicesService = new DevicesService(this.helpersService);
+		this.helpersService = new HelpersService();
+		this.devicesService = new DevicesService(this.helpersService);
 	}
 
 	initialize(config: Config): void {
-        this.config = config;
-        this.ensureValidConfig();
+		this.config = config;
+		this.ensureValidConfig();
 
 		if (MessagingService.PubNubInitialized) {
 			return;
@@ -73,7 +73,7 @@ export class MessagingService {
 				} else if (data.message.type == "device connected") {
 					let deviceConnectedMessage: DeviceConnectedMessage = data.message;
 					this.config.connectedDevices[data.publisher] = deviceConnectedMessage;
-                    this.config.callbacks.onConnectedDevicesChange(this.config.connectedDevices);
+					this.config.callbacks.onConnectedDevicesChange(this.config.connectedDevices);
 					this.config.callbacks.onDeviceConnected(deviceConnectedMessage);
 				}
 			}
@@ -93,16 +93,16 @@ export class MessagingService {
 	private ensureValidConfig() {
 		this.config.instanceId = this.config.instanceId || this.helpersService.shortId();
 		this.config.connectedDevices = this.config.connectedDevices || {};
-		this.config.getInitialFiles = this.config.getInitialFiles || (() => []);
+		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilePayload[]>((resolve) => { resolve([]); }));
 		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
-		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => {});
-		this.config.callbacks.onDeviceConnected = this.config.callbacks.onDeviceConnected || (() => {});
-		this.config.callbacks.onDevicesPresence = this.config.callbacks.onDevicesPresence || (() => {});
-		this.config.callbacks.onLogMessage = this.config.callbacks.onLogMessage || (() => {});
-		this.config.callbacks.onLogSdkMessage = this.config.callbacks.onLogSdkMessage || (() => {});
-		this.config.callbacks.onRestartMessage = this.config.callbacks.onRestartMessage || (() => {});
-		this.config.callbacks.onSendingChange = this.config.callbacks.onSendingChange || (() => {});
-		this.config.callbacks.onUncaughtErrorMessage = this.config.callbacks.onUncaughtErrorMessage || (() => {});
+		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => { });
+		this.config.callbacks.onDeviceConnected = this.config.callbacks.onDeviceConnected || (() => { });
+		this.config.callbacks.onDevicesPresence = this.config.callbacks.onDevicesPresence || (() => { });
+		this.config.callbacks.onLogMessage = this.config.callbacks.onLogMessage || (() => { });
+		this.config.callbacks.onLogSdkMessage = this.config.callbacks.onLogSdkMessage || (() => { });
+		this.config.callbacks.onRestartMessage = this.config.callbacks.onRestartMessage || (() => { });
+		this.config.callbacks.onSendingChange = this.config.callbacks.onSendingChange || (() => { });
+		this.config.callbacks.onUncaughtErrorMessage = this.config.callbacks.onUncaughtErrorMessage || (() => { });
 		if (!this.config.pubnubPublishKey) {
 			throw new Error("Pubnub publish key is required when creating a messaging service.");
 		}
@@ -174,12 +174,16 @@ export class MessagingService {
 		});
 	}
 
-    // TODO: check on CLI livesync as we don't have control on file upload 
-	exceedsMaximumTreeSize(additionalFiles?: FilePayload[]): boolean {
-		let files = this.config.getInitialFiles().concat(additionalFiles || []);
-		let chunks = this.getChunks(files);
+	// TODO: check on CLI livesync as we don't have control on file upload 
+	exceedsMaximumTreeSize(additionalFiles?: FilePayload[]): Promise<boolean> {
+		return new Promise((resolve) => {
+			this.config.getInitialFiles().then((initialFiles) => {
+				let files = initialFiles.concat(additionalFiles || []);
+				let chunks = this.getChunks(files);
 
-		return chunks.length > 650;
+				resolve(chunks.length > 650);
+			});
+		});
 	}
 
 	private sendFilesInChunks(channel: string, messageType: string, files: FilePayload[], deviceIdMeta?: string): Promise<void> {
@@ -198,33 +202,33 @@ export class MessagingService {
 
 			let meta = this.getPubNubMetaData(deviceIdMeta);
 
-            // TODO: handle bigger files (will be split on multiple chunks)
+			// TODO: handle bigger files (will be split on multiple chunks)
 			// if (chunks.length > 1) {
-				// let data = chunks.map(chunk => chunk.data);
+			// let data = chunks.map(chunk => chunk.data);
 
-				// this.pubNub.publish({
-				// 	message: { "type": "large session" },
-				// 	channel: channel,
-				// 	meta: meta
-				// });
+			// this.pubNub.publish({
+			// 	message: { "type": "large session" },
+			// 	channel: channel,
+			// 	meta: meta
+			// });
 
-				// this.projectsService.uploadFile(data.join("")).subscribe(response => {
-				// 	this.pubNub.publish({
-				// 		message: {
-				// 			"type": messageType,
-				// 			"remoteDataUrl": response.location
-				// 		},
-				// 		channel: channel,
-				// 		meta: meta
-				// 	}, (status, response) => {
-				// 		if (status.error) {
-				// 			reject(status.error);
-				// 		} else {
-				// 			resolve();
-				// 		}
-				// 	});
-				// }, e => reject(e));
-				// return;
+			// this.projectsService.uploadFile(data.join("")).subscribe(response => {
+			// 	this.pubNub.publish({
+			// 		message: {
+			// 			"type": messageType,
+			// 			"remoteDataUrl": response.location
+			// 		},
+			// 		channel: channel,
+			// 		meta: meta
+			// 	}, (status, response) => {
+			// 		if (status.error) {
+			// 			reject(status.error);
+			// 		} else {
+			// 			resolve();
+			// 		}
+			// 	});
+			// }, e => reject(e));
+			// return;
 			// }
 
 			this.pubNub.publish({
@@ -267,8 +271,8 @@ export class MessagingService {
 		let serializedPayload = JSON.stringify(payload);
 		let base64Encoded = this.helpersService.base64Encode(serializedPayload);
 
-        let parts = [base64Encoded];
-        // TODO: handle bigger files
+		let parts = [base64Encoded];
+		// TODO: handle bigger files
 		// let parts = base64Encoded.match(/.{1,30000}/g);
 		let chunks: FileChunk[] = [];
 		let id = this.helpersService.shortId();
@@ -308,7 +312,9 @@ export class MessagingService {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} message received: send files`);
 		}
 
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", this.config.getInitialFiles()).then(() => { });
+		this.config.getInitialFiles().then((initialFiles) => {
+			this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialFiles).then(() => { });
+		});
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number): void {

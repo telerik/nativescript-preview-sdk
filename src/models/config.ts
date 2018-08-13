@@ -4,7 +4,7 @@ import { ConnectedDevices } from "./connected-devices";
 
 export class Config {
 	instanceId: string;
-	getInitialFiles: () => FilePayload[];
+	getInitialFiles: () => Promise<FilePayload[]>;
 	callbacks: SdkCallbacks
 	pubnubPublishKey: string;
 	pubnubSubscribeKey: string;
