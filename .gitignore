@@ -4,5 +4,7 @@ npm-debug.log*
 .DS_Store
 .npm
 .idea
+*.js
+*.tgz
 
 node_modules/
