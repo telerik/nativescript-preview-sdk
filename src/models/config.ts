@@ -8,5 +8,5 @@ export class Config {
 	callbacks: SdkCallbacks
 	pubnubPublishKey: string;
 	pubnubSubscribeKey: string;
-    connectedDevices: ConnectedDevices;
+	connectedDevices: ConnectedDevices;
 }
