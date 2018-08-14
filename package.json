@@ -22,9 +22,10 @@
   },
   "homepage": "https://github.com/NativeScript/nativescript-preview-sdk#readme",
   "dependencies": {
-    "@types/pubnub": "^4.0.2",
+    "@types/pubnub": "4.0.2",
     "@types/shortid": "0.0.29",
-    "pubnub": "^4.21.2",
-    "shortid": "^2.2.12"
+    "btoa": "1.2.1",
+    "pubnub": "4.21.2",
+    "shortid": "2.2.12"
   }
 }
