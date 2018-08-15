@@ -14,6 +14,9 @@ export class MessagingService {
 	private static PubNubInitialized = false;
 
 	private pubNub: PubNub;
+	private pubNubListenerParams: PubNub.ListenerParameters;
+	private pubNubSubscribeParams: PubNub.SubscribeParameters;
+	private connectedDevicesTimeout: any;
 	private config: Config;
 	private helpersService: HelpersService;
 	private devicesService: DevicesService
@@ -38,7 +41,7 @@ export class MessagingService {
 			restore: true
 		});
 
-		this.pubNub.addListener({
+		this.pubNubListenerParams = {
 			presence: (presenceEvent: any) => {
 				this.getConnectedDevicesDelayed(presenceEvent, 5000);
 			},
@@ -77,19 +80,34 @@ export class MessagingService {
 					this.config.callbacks.onDeviceConnected(deviceConnectedMessage);
 				}
 			}
-		});
+		};
+		this.pubNub.addListener(this.pubNubListenerParams);
 
-		this.pubNub.subscribe({
+		this.pubNubSubscribeParams = {
 			channels: [
 				this.getBrowserChannel(this.config.instanceId),
 				`${this.getDevicesChannel(this.config.instanceId)}-pnpres`
 			],
 			withPresence: true
-		});
+		};
+		this.pubNub.subscribe(this.pubNubSubscribeParams);
 
 		MessagingService.PubNubInitialized = true;
 
 		return this.config.instanceId;
+	}
+
+	public stop() {
+		this.pubNub.removeListener(this.pubNubListenerParams);
+		this.pubNub.unsubscribe(this.pubNubSubscribeParams);
+		this.pubNub.stop();
+		clearTimeout(this.connectedDevicesTimeout);
+	}
+
+	public applyChanges(instanceId: string, nodes: FilePayload[], done: (err: Error) => void): void {
+		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes).then(() => {
+			done(null);
+		}).catch(e => done(e));
 	}
 
 	private ensureValidConfig() {
@@ -116,12 +134,6 @@ export class MessagingService {
 
 	sendInitialFiles(instanceId: string) {
 		this.handleSendInitialFiles({}, instanceId, 0, true);
-	}
-
-	public applyChanges(instanceId: string, nodes: FilePayload[], done: (err: Error) => void): void {
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes).then(() => {
-			done(null);
-		}).catch(e => done(e));
 	}
 
 	getConnectedDevices(instanceId: string): Promise<Device[]> {
@@ -320,7 +332,8 @@ export class MessagingService {
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number): void {
-		setTimeout(() => {
+		this.connectedDevicesTimeout = setTimeout(() => {
+			clearTimeout(this.connectedDevicesTimeout);
 			this.getConnectedDevices(this.config.instanceId).then(devices => {
 				let shouldRetry =
 					devices.length < 1 &&
