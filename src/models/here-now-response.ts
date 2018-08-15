@@ -1,8 +1,8 @@
-class Occupant {
+export class Occupant {
 	uuid: string;
 }
 
-class ChannelInfo {
+export class ChannelInfo {
 	name: string;
 	occupancy: number;
 	occupants: Occupant[];

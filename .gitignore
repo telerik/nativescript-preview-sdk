@@ -6,5 +6,6 @@ npm-debug.log*
 .idea
 *.js
 *.tgz
+*.d.ts
 
 node_modules/

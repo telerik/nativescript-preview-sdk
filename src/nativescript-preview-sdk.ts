@@ -5,3 +5,5 @@ export * from "./models/sdk-callbacks";
 export * from "./models/file-payload";
 export * from "./constants";
 export * from "./models/here-now-response";
+export * from "./models/connected-devices";
+export * from "./models/config";

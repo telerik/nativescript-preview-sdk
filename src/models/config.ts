@@ -3,10 +3,10 @@ import { SdkCallbacks } from "./sdk-callbacks";
 import { ConnectedDevices } from "./connected-devices";
 
 export class Config {
-	instanceId: string;
-	getInitialFiles: () => Promise<FilePayload[]>;
-	callbacks: SdkCallbacks
 	pubnubPublishKey: string;
 	pubnubSubscribeKey: string;
-	connectedDevices: ConnectedDevices;
+	callbacks: SdkCallbacks;
+	getInitialFiles: () => Promise<FilePayload[]>;
+	instanceId?: string;
+	connectedDevices?: ConnectedDevices;
 }

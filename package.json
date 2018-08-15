@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Handles the communication to the NativeScript Preview Apps",
   "main": "src/nativescript-preview-sdk",
+  "typings": "src/nativescript-preview-sdk.d.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

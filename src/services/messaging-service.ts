@@ -23,7 +23,7 @@ export class MessagingService {
 		this.devicesService = new DevicesService(this.helpersService);
 	}
 
-	initialize(config: Config): void {
+	public initialize(config: Config): string {
 		this.config = config;
 		this.ensureValidConfig();
 
@@ -88,6 +88,8 @@ export class MessagingService {
 		});
 
 		MessagingService.PubNubInitialized = true;
+
+		return this.config.instanceId;
 	}
 
 	private ensureValidConfig() {
@@ -116,7 +118,7 @@ export class MessagingService {
 		this.handleSendInitialFiles({}, instanceId, 0, true);
 	}
 
-	applyChanges(instanceId: string, nodes: FilePayload[], done: (err) => void): void {
+	public applyChanges(instanceId: string, nodes: FilePayload[], done: (err: Error) => void): void {
 		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes).then(() => {
 			done(null);
 		}).catch(e => done(e));
