@@ -9,6 +9,7 @@ import { HereNowResponse } from "../models/here-now-response";
 import { FilePayload } from "../models/file-payload";
 import * as PubNub from "pubnub";
 import { SdkCallbacks } from "../models/sdk-callbacks";
+import { SendFilesStatus } from "../models/send-files-status";
 
 export class MessagingService {
 	private static PubNubInitialized = false;
@@ -19,7 +20,7 @@ export class MessagingService {
 	private connectedDevicesTimeout: any;
 	private config: Config;
 	private helpersService: HelpersService;
-	private devicesService: DevicesService
+	private devicesService: DevicesService;
 
 	constructor() {
 		this.helpersService = new HelpersService();
@@ -77,7 +78,8 @@ export class MessagingService {
 					let deviceConnectedMessage: DeviceConnectedMessage = data.message;
 					this.config.connectedDevices[data.publisher] = deviceConnectedMessage;
 					this.config.callbacks.onConnectedDevicesChange(this.config.connectedDevices);
-					this.config.callbacks.onDeviceConnected(deviceConnectedMessage);
+					this.config.callbacks.onDeviceConnectedMessage(deviceConnectedMessage);
+					this.config.callbacks.onDeviceConnected(this.devicesService.get(deviceConnectedMessage));
 				}
 			}
 		};
@@ -105,9 +107,9 @@ export class MessagingService {
 	}
 
 	public applyChanges(instanceId: string, nodes: FilePayload[], done: (err: Error) => void): void {
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes).then(() => {
-			done(null);
-		}).catch(e => done(e));
+		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes)
+			.then(() => done(null))
+			.catch(e => done(e));
 	}
 
 	private ensureValidConfig() {
@@ -116,6 +118,7 @@ export class MessagingService {
 		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilePayload[]>((resolve) => { resolve([]); }));
 		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
 		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => { });
+		this.config.callbacks.onDeviceConnectedMessage = this.config.callbacks.onDeviceConnectedMessage || (() => { });
 		this.config.callbacks.onDeviceConnected = this.config.callbacks.onDeviceConnected || (() => { });
 		this.config.callbacks.onDevicesPresence = this.config.callbacks.onDevicesPresence || (() => { });
 		this.config.callbacks.onLogMessage = this.config.callbacks.onLogMessage || (() => { });
@@ -200,12 +203,20 @@ export class MessagingService {
 		});
 	}
 
-	private sendFilesInChunks(channel: string, messageType: string, files: FilePayload[], deviceIdMeta?: string): Promise<void> {
+	private sendFilesInChunks(channel: string, messageType: string, files: FilePayload[], deviceIdMeta?: string): Promise<SendFilesStatus> {
 		let chunks = this.getChunks(files);
 		this.config.callbacks.onSendingChange(true);
-		return this.getPublishPromise(channel, messageType, chunks, deviceIdMeta)
-			.then(() => this.config.callbacks.onSendingChange(false))
-			.catch(err => this.config.callbacks.onSendingChange(false));
+		return new Promise((resolve, reject) => {
+			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta)
+				.then(() => {
+					this.config.callbacks.onSendingChange(false);
+					resolve({ error: false });
+				})
+				.catch(err => {
+					this.config.callbacks.onSendingChange(false);
+					reject(err);
+				});
+		});
 	}
 
 	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta?: string): Promise<void> {
@@ -257,7 +268,7 @@ export class MessagingService {
 				meta: meta
 			}, (status, response) => {
 				if (status.error) {
-					reject(status.error);
+					reject(status);
 				} else {
 					resolve();
 				}
