@@ -1,5 +1,5 @@
 import * as shortId from "shortid";
-import * as btoa from "btoa";
+import * as nodeBtoa from "btoa";
 
 declare function escape(s: string): string;
 declare function unescape(s: string): string;
@@ -14,6 +14,11 @@ export class HelpersService {
 	}
 
 	base64Encode(input: string): string {
-		return btoa(unescape(encodeURIComponent(input)));
+		if (typeof window !== undefined) {
+			return window.btoa(unescape(encodeURIComponent(input)))
+		}
+		else {
+			return nodeBtoa(unescape(encodeURIComponent(input)));
+		}
 	}
 }

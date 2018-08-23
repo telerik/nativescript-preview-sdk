@@ -133,6 +133,10 @@ export class MessagingService {
 		if (!this.config.pubnubSubscribeKey) {
 			throw new Error("Pubnub subscribe key is required when creating a messaging service.");
 		}
+
+		if (!this.config.callbacks.onBiggerFilesUpload) {
+			throw new Error("onBiggerFilesUpload callback is required when creating a messaging service.");
+		}
 	}
 
 	sendInitialFiles(instanceId: string) {
@@ -221,58 +225,60 @@ export class MessagingService {
 
 	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta?: string): Promise<void> {
 		return new Promise((resolve, reject) => {
-			if (chunks.length < 1) {
+			if (!chunks.length) {
 				return resolve();
 			}
 
 			let meta = this.getPubNubMetaData(deviceIdMeta);
 
-			// TODO: handle bigger files (will be split on multiple chunks)
-			// if (chunks.length > 1) {
-			// let data = chunks.map(chunk => chunk.data);
+			if (chunks.length === 1) {
+				this.pubNub.publish({
+					message: {
+						"type": messageType,
+						"id": chunks[0].id,
+						"index": chunks[0].index,
+						"total": chunks[0].total,
+						"data": chunks[0].data
+					},
+					channel: channel,
+					meta: meta
+				}, (status, response) => {
+					if (status.error) {
+						reject(status);
+					} else {
+						resolve();
+					}
+				});
+			} else {
+				let data = chunks.map(chunk => chunk.data);
 
-			// this.pubNub.publish({
-			// 	message: { "type": "large session" },
-			// 	channel: channel,
-			// 	meta: meta
-			// });
+				this.pubNub.publish({
+					message: { "type": "large session" },
+					channel: channel,
+					meta: meta
+				});
 
-			// this.projectsService.uploadFile(data.join("")).subscribe(response => {
-			// 	this.pubNub.publish({
-			// 		message: {
-			// 			"type": messageType,
-			// 			"remoteDataUrl": response.location
-			// 		},
-			// 		channel: channel,
-			// 		meta: meta
-			// 	}, (status, response) => {
-			// 		if (status.error) {
-			// 			reject(status.error);
-			// 		} else {
-			// 			resolve();
-			// 		}
-			// 	});
-			// }, e => reject(e));
-			// return;
-			// }
-
-			this.pubNub.publish({
-				message: {
-					"type": messageType,
-					"id": chunks[0].id,
-					"index": chunks[0].index,
-					"total": chunks[0].total,
-					"data": chunks[0].data
-				},
-				channel: channel,
-				meta: meta
-			}, (status, response) => {
-				if (status.error) {
-					reject(status);
-				} else {
-					resolve();
-				}
-			});
+				this.config.callbacks.onBiggerFilesUpload(data.join(""), (uploadedFilesLocation, error) => {
+					if (error) {
+						reject(error);
+					} else {
+						this.pubNub.publish({
+							message: {
+								"type": messageType,
+								"remoteDataUrl": uploadedFilesLocation
+							},
+							channel: channel,
+							meta: meta
+						}, (status) => {
+							if (status.error) {
+								reject(status.error);
+							} else {
+								resolve();
+							}
+						});
+					}
+				});
+			}
 		});
 	}
 
@@ -296,9 +302,7 @@ export class MessagingService {
 		let serializedPayload = JSON.stringify(payload);
 		let base64Encoded = this.helpersService.base64Encode(serializedPayload);
 
-		let parts = [base64Encoded];
-		// TODO: handle bigger files
-		// let parts = base64Encoded.match(/.{1,30000}/g);
+		let parts = base64Encoded.match(/.{1,30000}/g);
 		let chunks: FileChunk[] = [];
 		let id = this.helpersService.shortId();
 		parts.forEach((part: string, index: number) => {
