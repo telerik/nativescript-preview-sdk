@@ -14,7 +14,7 @@ export class HelpersService {
 	}
 
 	base64Encode(input: string): string {
-		if (typeof window !== undefined) {
+		if (typeof window !== "undefined") {
 			return window.btoa(unescape(encodeURIComponent(input)))
 		}
 		else {
