@@ -4,24 +4,23 @@
   "description": "Handles the communication to the NativeScript Preview Apps",
   "main": "src/nativescript-preview-sdk",
   "typings": "src/nativescript-preview-sdk.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/NativeScript/nativescript-preview-sdk.git"
+    "url": "git+https://github.com/telerik/nativescript-preview-sdk.git"
   },
   "keywords": [
     "nativescript",
     "preview",
-    "sdk"
+    "sdk",
+    "play",
+    "playground"
   ],
   "author": "NativeScript Team",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/NativeScript/nativescript-preview-sdk/issues"
+    "url": "https://github.com/telerik/nativescript-preview-sdk/issues"
   },
-  "homepage": "https://github.com/NativeScript/nativescript-preview-sdk#readme",
+  "homepage": "https://github.com/telerik/nativescript-preview-sdk#readme",
   "dependencies": {
     "@types/pubnub": "4.0.2",
     "@types/shortid": "0.0.29",
