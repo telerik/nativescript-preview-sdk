@@ -6,7 +6,9 @@ import { DeviceConnectedMessage } from "../models/device-connected-message";
 import { Constants } from "../constants";
 import { Device } from "../models/device";
 import { HereNowResponse } from "../models/here-now-response";
+import { DevicePlatform } from "../models/device-platform";
 import { FilePayload } from "../models/file-payload";
+import { FilesPayload } from "../models/files-payload";
 import * as PubNub from "pubnub";
 import { SdkCallbacks } from "../models/sdk-callbacks";
 import { SendFilesStatus } from "../models/send-files-status";
@@ -106,8 +108,8 @@ export class MessagingService {
 		clearTimeout(this.connectedDevicesTimeout);
 	}
 
-	public applyChanges(instanceId: string, nodes: FilePayload[], done: (err: Error) => void): void {
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", nodes)
+	public applyChanges(instanceId: string, filesPayload: FilesPayload, done: (err: Error) => void): void {
+		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", filesPayload)
 			.then(() => done(null))
 			.catch(e => done(e));
 	}
@@ -115,7 +117,7 @@ export class MessagingService {
 	private ensureValidConfig() {
 		this.config.instanceId = this.config.instanceId || this.helpersService.shortId();
 		this.config.connectedDevices = this.config.connectedDevices || {};
-		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilePayload[]>((resolve) => { resolve([]); }));
+		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilesPayload>((resolve) => { resolve({ files: [], platform: ""}); }));
 		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
 		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => { });
 		this.config.callbacks.onDeviceConnectedMessage = this.config.callbacks.onDeviceConnectedMessage || (() => { });
@@ -198,8 +200,8 @@ export class MessagingService {
 	// TODO: check on CLI livesync as we don't have control on file upload 
 	exceedsMaximumTreeSize(additionalFiles?: FilePayload[]): Promise<boolean> {
 		return new Promise((resolve) => {
-			this.config.getInitialFiles().then((initialFiles) => {
-				let files = initialFiles.concat(additionalFiles || []);
+			this.config.getInitialFiles().then((initialPayload) => {
+				let files = initialPayload.files.concat(additionalFiles || []);
 				let chunks = this.getChunks(files);
 
 				resolve(chunks.length > 650);
@@ -207,11 +209,11 @@ export class MessagingService {
 		});
 	}
 
-	private sendFilesInChunks(channel: string, messageType: string, files: FilePayload[], deviceIdMeta?: string): Promise<SendFilesStatus> {
-		let chunks = this.getChunks(files);
+	private sendFilesInChunks(channel: string, messageType: string, filesPayload: FilesPayload, deviceIdMeta?: string): Promise<SendFilesStatus> {
+		let chunks = this.getChunks(filesPayload.files);
 		this.config.callbacks.onSendingChange(true);
 		return new Promise((resolve, reject) => {
-			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta)
+			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform)
 				.then(() => {
 					this.config.callbacks.onSendingChange(false);
 					resolve({ error: false });
@@ -223,13 +225,13 @@ export class MessagingService {
 		});
 	}
 
-	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta?: string): Promise<void> {
+	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string): Promise<void> {
 		return new Promise((resolve, reject) => {
 			if (!chunks.length) {
 				return resolve();
 			}
 
-			let meta = this.getPubNubMetaData(deviceIdMeta);
+			let meta = this.getPubNubMetaData(deviceIdMeta, platform);
 
 			if (chunks.length === 1) {
 				this.pubNub.publish({
@@ -282,10 +284,11 @@ export class MessagingService {
 		});
 	}
 
-	private getPubNubMetaData(deviceIdMeta?: string): any {
+	private getPubNubMetaData(deviceIdMeta?: string, targetPlatform: string = DevicePlatform.All): any {
 		let meta: any = {
 			msvi: Constants.МsviOS,
-			msva: Constants.MsvAndroid
+			msva: Constants.MsvAndroid,
+			platform: targetPlatform
 		};
 		if (deviceIdMeta) {
 			meta = {
@@ -334,15 +337,15 @@ export class MessagingService {
 			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
 			if (!device.version || !device.platform || device.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
-				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", deprecatedAppFiles, data.publisher).then(() => { });
+				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles }, data.publisher).then(() => { });
 				return;
 			}
 
 			this.config.callbacks.onLogSdkMessage(`${instanceId} message received: send files`);
 		}
 
-		this.config.getInitialFiles().then((initialFiles) => {
-			this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialFiles).then(() => { });
+		this.config.getInitialFiles().then((initialPayload) => {
+			this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload).then(() => { });
 		});
 	}
 
