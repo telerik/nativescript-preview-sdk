@@ -1,6 +1,6 @@
 {
   "name": "nativescript-preview-sdk",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Handles the communication to the NativeScript Preview Apps",
   "main": "src/nativescript-preview-sdk",
   "typings": "src/nativescript-preview-sdk.d.ts",
@@ -27,5 +27,8 @@
     "btoa": "1.2.1",
     "pubnub": "4.21.2",
     "shortid": "2.2.12"
+  },
+  "devDependencies": {
+    "typescript": "^3.0.3"
   }
 }
