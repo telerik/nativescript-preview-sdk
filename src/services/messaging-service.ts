@@ -356,7 +356,9 @@ export class MessagingService {
 				let shouldRetry =
 					devices.length < 1 &&
 					presenceEvent.action &&
-					this.helpersService.areCaseInsensitiveEqual("join", presenceEvent.action);
+					this.helpersService.areCaseInsensitiveEqual("join", presenceEvent.action) &&
+					presenceEvent.channel &&
+					!presenceEvent.channel.startsWith("b-");
 
 				if (shouldRetry) {
 					this.getConnectedDevicesDelayed(presenceEvent, 2000);
