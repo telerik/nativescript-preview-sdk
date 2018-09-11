@@ -109,7 +109,7 @@ export class MessagingService {
 	}
 
 	public applyChanges(instanceId: string, filesPayload: FilesPayload, done: (err: Error) => void): void {
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", filesPayload)
+		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", filesPayload, filesPayload.deviceId)
 			.then(() => done(null))
 			.catch(e => done(e));
 	}
