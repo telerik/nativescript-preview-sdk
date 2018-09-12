@@ -46,7 +46,7 @@ export class MessagingService {
 
 		this.pubNubListenerParams = {
 			presence: (presenceEvent: any) => {
-				this.getConnectedDevicesDelayed(presenceEvent, 5000);
+				this.getConnectedDevicesDelayed(presenceEvent, 5000, 0);
 			},
 			message: (data: any) => {
 				if (data.message.type == "send files") {
@@ -197,7 +197,7 @@ export class MessagingService {
 		});
 	}
 
-	// TODO: check on CLI livesync as we don't have control on file upload 
+	// TODO: check on CLI livesync as we don't have control on file upload
 	exceedsMaximumTreeSize(additionalFiles?: FilePayload[]): Promise<boolean> {
 		return new Promise((resolve) => {
 			this.config.getInitialFiles().then((initialPayload) => {
@@ -349,19 +349,19 @@ export class MessagingService {
 		});
 	}
 
-	private getConnectedDevicesDelayed(presenceEvent: any, delay: number): void {
+	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
 		this.connectedDevicesTimeout = setTimeout(() => {
 			clearTimeout(this.connectedDevicesTimeout);
 			this.getConnectedDevices(this.config.instanceId).then(devices => {
 				let shouldRetry =
-					devices.length < 1 &&
+					!(devices || []).find(d => d.id == presenceEvent.uuid) &&
 					presenceEvent.action &&
 					this.helpersService.areCaseInsensitiveEqual("join", presenceEvent.action) &&
 					presenceEvent.channel &&
 					!presenceEvent.channel.startsWith("b-");
 
-				if (shouldRetry) {
-					this.getConnectedDevicesDelayed(presenceEvent, 2000);
+				if (shouldRetry && retryCount < 5) {
+					this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount++);
 				}
 			});
 		}, delay);
