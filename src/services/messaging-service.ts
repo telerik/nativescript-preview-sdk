@@ -344,9 +344,12 @@ export class MessagingService {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} message received: send files`);
 		}
 
-		this.config.getInitialFiles().then((initialPayload) => {
-			this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload).then(() => { });
-		});
+		this.config.getInitialFiles()
+			.then((initialPayload) => {
+				if (initialPayload.files && initialPayload.files.length) {
+					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
+				}
+			});
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
