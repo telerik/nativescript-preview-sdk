@@ -19,7 +19,7 @@ export class MessagingService {
 	private pubNub: PubNub;
 	private pubNubListenerParams: PubNub.ListenerParameters;
 	private pubNubSubscribeParams: PubNub.SubscribeParameters;
-	private connectedDevicesTimeout: any;
+	private connectedDevicesTimeouts: {[id: string]: number};
 	private config: Config;
 	private helpersService: HelpersService;
 	private devicesService: DevicesService;
@@ -27,6 +27,7 @@ export class MessagingService {
 	constructor() {
 		this.helpersService = new HelpersService();
 		this.devicesService = new DevicesService(this.helpersService);
+		this.connectedDevicesTimeouts = {};
 	}
 
 	public initialize(config: Config): string {
@@ -105,7 +106,9 @@ export class MessagingService {
 		this.pubNub.removeListener(this.pubNubListenerParams);
 		this.pubNub.unsubscribe(this.pubNubSubscribeParams);
 		this.pubNub.stop();
-		clearTimeout(this.connectedDevicesTimeout);
+		for (let uuid in this.connectedDevicesTimeouts) {
+			clearTimeout(this.connectedDevicesTimeouts[uuid]);
+		}
 	}
 
 	public applyChanges(instanceId: string, filesPayload: FilesPayload, done: (err: Error) => void): void {
@@ -350,8 +353,7 @@ export class MessagingService {
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
-		this.connectedDevicesTimeout = setTimeout(() => {
-			clearTimeout(this.connectedDevicesTimeout);
+		this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
 			this.getConnectedDevices(this.config.instanceId).then(devices => {
 				let shouldRetry =
 					!(devices || []).find(d => d.id == presenceEvent.uuid) &&
@@ -360,8 +362,8 @@ export class MessagingService {
 					presenceEvent.channel &&
 					!presenceEvent.channel.startsWith("b-");
 
-				if (shouldRetry && retryCount < 5) {
-					this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount++);
+				if (shouldRetry && retryCount < 7) {
+					this.getConnectedDevicesDelayed(presenceEvent, 1000 * (retryCount + 1), retryCount++);
 				}
 			});
 		}, delay);
