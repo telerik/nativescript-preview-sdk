@@ -324,21 +324,23 @@ export class MessagingService {
 	}
 
 	private handleSendInitialFiles(data: any, instanceId: string, retries: number, skipDeviceCheck: boolean = false): void {
+		let device: Device = null;
 		if (retries > 10) {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} Exception: didn't receive device connected message after ${retries} retries`);
 			return;
 		}
 
 		if (!skipDeviceCheck) {
-			let device = this.config.connectedDevices[data.publisher];
-			if (!device) {
+			let deviceConnectedMessage = this.config.connectedDevices[data.publisher];
+			if (!deviceConnectedMessage) {
 				setTimeout(() => this.handleSendInitialFiles(data, instanceId, retries++), 1000);
 				return;
 			}
-
+			
+			device = this.devicesService.get(deviceConnectedMessage);
 			let isAndroid = this.helpersService.areCaseInsensitiveEqual(device.platform, "android");
 			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
-			if (!device.version || !device.platform || device.version < minimumSupportedVersion) {
+			if (!deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
 				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles }, data.publisher).then(() => { });
 				return;
@@ -347,7 +349,7 @@ export class MessagingService {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} message received: send files`);
 		}
 
-		this.config.getInitialFiles()
+		this.config.getInitialFiles(device)
 			.then((initialPayload) => {
 				if (initialPayload.files && initialPayload.files.length) {
 					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
