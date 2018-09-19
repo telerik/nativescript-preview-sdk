@@ -336,7 +336,7 @@ export class MessagingService {
 				setTimeout(() => this.handleSendInitialFiles(data, instanceId, retries++), 1000);
 				return;
 			}
-			
+
 			device = this.devicesService.get(deviceConnectedMessage);
 			let isAndroid = this.helpersService.areCaseInsensitiveEqual(device.platform, "android");
 			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
@@ -384,7 +384,7 @@ export class MessagingService {
 			{
 				event: "change",
 				file: "_deprecated-error.js",
-				fileContents: `var application = require("application"),
+				fileContents: `var application = require("tns-core-modules/application"),
 	Page = require("tns-core-modules/ui/page").Page,
 	ActionBar = require("tns-core-modules/ui/action-bar").ActionBar,
 	Label = require("tns-core-modules/ui/label").Label,
@@ -392,7 +392,7 @@ export class MessagingService {
 	Button = require("tns-core-modules/ui/button").Button,
 	StackLayout = require("tns-core-modules/ui/layouts/stack-layout").StackLayout,
 	FlexboxLayout = require("tns-core-modules/ui/layouts/flexbox-layout").FlexboxLayout,
-	utils = require("utils/utils");
+	utils = require("tns-core-modules/utils/utils");
 
 application.start({
 	create: () => {
