@@ -1,5 +1,5 @@
 const data = {
-	"sit": {
+	"staging": {
 		"playground": {
 			"android": 30,
 			"ios": 19
