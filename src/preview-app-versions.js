@@ -1,4 +1,4 @@
-{
+const data = {
 	"sit": {
 		"playground": {
 			"android": 30,
@@ -29,4 +29,7 @@
 			"ios": 19
 		}
 	}
-}
+};
+export {
+	data
+};

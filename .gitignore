@@ -7,5 +7,6 @@ npm-debug.log*
 *.js
 *.tgz
 *.d.ts
+!src/preview-app-versions.js
 
 node_modules/
