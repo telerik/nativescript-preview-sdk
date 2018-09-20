@@ -352,6 +352,10 @@ export class MessagingService {
 		this.config.getInitialFiles(device)
 			.then((initialPayload) => {
 				if (initialPayload.files && initialPayload.files.length) {
+					if (!initialPayload.deviceId) {
+						initialPayload.deviceId = device.id;
+					}
+
 					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
 				}
 			});
