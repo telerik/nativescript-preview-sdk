@@ -2,7 +2,7 @@ import * as axios from "axios";
 import { data } from "../preview-app-versions";
 
 export class PreviewAppVersionsService {
-	private static GET_VERSIONS_DATA_URL = "https://raw.githubusercontent.com/telerik/nativescript-preview-sdk/master/src/preview-app-versions.js?token=AAuaxiKOa83eWHeHU_N3C1qPCW1z4rv5ks5brHCBwA%3D%3D";
+	private static GET_VERSIONS_DATA_URL = "https://raw.githubusercontent.com/telerik/nativescript-preview-sdk/master/src/preview-app-versions.js";
 
 	public validMsvKeys = ["cli", "playground"];
 	public validMsvEnvs = ["staging", "uat", "live"];
