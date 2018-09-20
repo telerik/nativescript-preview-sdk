@@ -5,7 +5,7 @@ export class PreviewAppVersionsService {
 	private static GET_VERSIONS_DATA_URL = "https://raw.githubusercontent.com/telerik/nativescript-preview-sdk/master/src/preview-app-versions.js?token=AAuaxiKOa83eWHeHU_N3C1qPCW1z4rv5ks5brHCBwA%3D%3D";
 
 	public validMsvKeys = ["cli", "playground"];
-	public validMsvEnvs = ["sit", "uat", "live"];
+	public validMsvEnvs = ["staging", "uat", "live"];
 
 	public async getMinSupportedVersions(key: string, env: string): Promise<{ android: number, ios: number }> {
 		const response = await this.get();

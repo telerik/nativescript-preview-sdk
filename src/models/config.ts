@@ -11,7 +11,7 @@ export class Config {
 	 */
 	msvKey: string;
 	/**
-	 * Can be sit, uat or live
+	 * Can be staging, uat or live
 	 */
 	msvEnv: string;
 	callbacks: SdkCallbacks;
