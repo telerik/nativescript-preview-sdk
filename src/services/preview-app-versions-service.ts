@@ -31,13 +31,11 @@ export class PreviewAppVersionsService {
 	}
 
 	private parseResponseCore(response: any): string {
-		let parts = response.split("\n");
-		const count = parts.length - 1;
-		// Remove first and the last three rows
-		parts = parts.filter((part, index) => index !== 0 && index !== count && index !== count - 1 && index !== count - 2);
-		parts.unshift("{ ");
+		const parts = response.split("\n");
+		// Replace first row with {
+		parts[0] = "{ ";
 		let result = parts.join("\n");
-		// Remove last ;
+		// Remove last symbol - ;
 		result = result.substr(0, result.length - 1);
 
 		return result;
