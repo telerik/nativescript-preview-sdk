@@ -352,7 +352,7 @@ export class MessagingService {
 		this.config.getInitialFiles(device)
 			.then((initialPayload) => {
 				if (initialPayload.files && initialPayload.files.length) {
-					if (!initialPayload.deviceId) {
+					if (!initialPayload.deviceId && device) {
 						initialPayload.deviceId = device.id;
 					}
 
