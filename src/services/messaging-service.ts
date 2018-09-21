@@ -151,7 +151,7 @@ export class MessagingService {
 	getConnectedDevices(instanceId: string): Promise<Device[]> {
 		let devicesChannel = this.getDevicesChannel(instanceId);
 		return new Promise((resolve, reject) => {
-			let request = {
+            let request = {
 				channels: [devicesChannel],
 				includeUUIDs: true,
 				includeState: true
@@ -291,13 +291,13 @@ export class MessagingService {
 		let meta: any = {
 			msvi: Constants.МsviOS,
 			msva: Constants.MsvAndroid,
-			platform: targetPlatform
+            platform: targetPlatform
 		};
 		if (deviceIdMeta) {
 			meta = {
 				msvi: Number.MAX_SAFE_INTEGER,
 				msva: Number.MAX_SAFE_INTEGER,
-				di: deviceIdMeta
+                di: deviceIdMeta
 			}
 		}
 
@@ -352,17 +352,22 @@ export class MessagingService {
 		this.config.getInitialFiles(device)
 			.then((initialPayload) => {
 				if (initialPayload.files && initialPayload.files.length) {
-					if (!initialPayload.deviceId) {
+					if (!initialPayload.deviceId && device) {
 						initialPayload.deviceId = device.id;
 					}
 
-					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
+                    this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
 				}
 			});
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
-		this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
+        this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
+            if(!this.helpersService.isBrowserTabActive()) {
+                //Page not visible, retrying in 2 seconds
+                return this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount);
+            }
+
 			this.getConnectedDevices(this.config.instanceId).then(devices => {
 				let shouldRetry =
 					!(devices || []).find(d => d.id == presenceEvent.uuid) &&
@@ -371,8 +376,8 @@ export class MessagingService {
 					presenceEvent.channel &&
 					!presenceEvent.channel.startsWith("b-");
 
-				if (shouldRetry && retryCount < 7) {
-					this.getConnectedDevicesDelayed(presenceEvent, 1000 * (retryCount + 1), retryCount++);
+				if (shouldRetry && retryCount < 5) {
+					this.getConnectedDevicesDelayed(presenceEvent, 1000 * (retryCount + 1), ++retryCount);
 				}
 			});
 		}, delay);
