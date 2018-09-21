@@ -213,7 +213,8 @@ export class MessagingService {
 	}
 
 	private sendFilesInChunks(channel: string, messageType: string, filesPayload: FilesPayload, deviceIdMeta?: string): Promise<SendFilesStatus> {
-		let chunks = this.getChunks(filesPayload.files);
+		let finalFilesPayload = this.getFinalFilesPayload(filesPayload);
+		let chunks = this.getChunks(finalFilesPayload);
 		this.config.callbacks.onSendingChange(true);
 		return new Promise((resolve, reject) => {
 			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform)
@@ -226,6 +227,19 @@ export class MessagingService {
 					reject(err);
 				});
 		});
+	}
+
+	private getFinalFilesPayload(filesPayload: FilesPayload) {
+		let finalFiles = filesPayload.files;
+		var appPackageJson = finalFiles.find((filePayload) => filePayload.file === "package.json");
+		if (appPackageJson) {
+			const jsonContent = JSON.parse(appPackageJson.fileContents);
+			jsonContent.android = jsonContent.android || {};
+			jsonContent.android.forceLog = true;
+			appPackageJson.fileContents = JSON.stringify(jsonContent);
+		}
+
+		return finalFiles;
 	}
 
 	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string): Promise<void> {
