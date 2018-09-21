@@ -144,8 +144,8 @@ export class MessagingService {
 		}
 	}
 
-	sendInitialFiles(instanceId: string) {
-		this.handleSendInitialFiles({}, instanceId, 0, true);
+	sendInitialFiles(instanceId: string, hmrMode?: number) {
+		this.handleSendInitialFiles({}, instanceId, 0, true, hmrMode);
 	}
 
 	getConnectedDevices(instanceId: string): Promise<Device[]> {
@@ -216,7 +216,7 @@ export class MessagingService {
 		let chunks = this.getChunks(filesPayload.files);
 		this.config.callbacks.onSendingChange(true);
 		return new Promise((resolve, reject) => {
-			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform)
+			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform, filesPayload.hmrMode)
 				.then(() => {
 					this.config.callbacks.onSendingChange(false);
 					resolve({ error: false });
@@ -228,13 +228,13 @@ export class MessagingService {
 		});
 	}
 
-	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string): Promise<void> {
+	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string, hmrMode?: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			if (!chunks.length) {
 				return resolve();
 			}
 
-			let meta = this.getPubNubMetaData(deviceIdMeta, platform);
+			let meta = this.getPubNubMetaData(deviceIdMeta, platform, hmrMode);
 
 			if (chunks.length === 1) {
 				this.pubNub.publish({
@@ -287,19 +287,22 @@ export class MessagingService {
 		});
 	}
 
-	private getPubNubMetaData(deviceIdMeta?: string, targetPlatform: string = DevicePlatform.All): any {
+	private getPubNubMetaData(deviceIdMeta?: string, targetPlatform: string = DevicePlatform.All, hmrMode?: number): any {
 		let meta: any = {
 			msvi: Constants.МsviOS,
 			msva: Constants.MsvAndroid,
-            platform: targetPlatform
+            platform: targetPlatform,
 		};
 		if (deviceIdMeta) {
 			meta = {
 				msvi: Number.MAX_SAFE_INTEGER,
 				msva: Number.MAX_SAFE_INTEGER,
-                di: deviceIdMeta
+                di: deviceIdMeta,
 			}
-		}
+        }
+        if(hmrMode === 0 || hmrMode === 1) {
+            meta.hmrMode = hmrMode;
+        }
 
 		return meta;
 	}
@@ -323,7 +326,7 @@ export class MessagingService {
 		return chunks;
 	}
 
-	private handleSendInitialFiles(data: any, instanceId: string, retries: number, skipDeviceCheck: boolean = false): void {
+	private handleSendInitialFiles(data: any, instanceId: string, retries: number, skipDeviceCheck: boolean = false, hmrMode?: number): void {
 		let device: Device = null;
 		if (retries > 10) {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} Exception: didn't receive device connected message after ${retries} retries`);
@@ -333,7 +336,7 @@ export class MessagingService {
 		if (!skipDeviceCheck) {
 			let deviceConnectedMessage = this.config.connectedDevices[data.publisher];
 			if (!deviceConnectedMessage) {
-				setTimeout(() => this.handleSendInitialFiles(data, instanceId, retries++), 1000);
+				setTimeout(() => this.handleSendInitialFiles(data, instanceId, retries++, false, hmrMode), 1000);
 				return;
 			}
 
@@ -342,7 +345,7 @@ export class MessagingService {
 			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
 			if (!deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
-				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles }, data.publisher).then(() => { });
+				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles, hmrMode }, data.publisher).then(() => { });
 				return;
 			}
 
@@ -356,7 +359,8 @@ export class MessagingService {
 						initialPayload.deviceId = device.id;
 					}
 
-                    this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
+                    initialPayload.hmrMode = hmrMode;
+					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
 				}
 			});
 	}
@@ -364,7 +368,7 @@ export class MessagingService {
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
         this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
             if(!this.helpersService.isBrowserTabActive()) {
-                //Page not visible, retrying in 2 seconds
+                console.log("Page not visible, retrying in 2 seconds");
                 return this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount);
             }
 
