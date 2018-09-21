@@ -333,7 +333,7 @@ export class MessagingService {
 		if (!skipDeviceCheck) {
 			let deviceConnectedMessage = this.config.connectedDevices[data.publisher];
 			if (!deviceConnectedMessage) {
-				setTimeout(() => this.handleSendInitialFiles(data, instanceId, retries++), 1000);
+				setTimeout(() => this.handleSendInitialFiles(data, instanceId, ++retries), 1000);
 				return;
 			}
 
