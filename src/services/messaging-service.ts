@@ -19,7 +19,7 @@ export class MessagingService {
 	private pubNub: PubNub;
 	private pubNubListenerParams: PubNub.ListenerParameters;
 	private pubNubSubscribeParams: PubNub.SubscribeParameters;
-	private connectedDevicesTimeouts: {[id: string]: number};
+	private connectedDevicesTimeouts: { [id: string]: number };
 	private config: Config;
 	private helpersService: HelpersService;
 	private devicesService: DevicesService;
@@ -120,7 +120,7 @@ export class MessagingService {
 	private ensureValidConfig() {
 		this.config.instanceId = this.config.instanceId || this.helpersService.shortId();
 		this.config.connectedDevices = this.config.connectedDevices || {};
-		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilesPayload>((resolve) => { resolve({ files: [], platform: ""}); }));
+		this.config.getInitialFiles = this.config.getInitialFiles || (() => new Promise<FilesPayload>((resolve) => { resolve({ files: [], platform: "" }); }));
 		this.config.callbacks = this.config.callbacks || <SdkCallbacks>{};
 		this.config.callbacks.onConnectedDevicesChange = this.config.callbacks.onConnectedDevicesChange || (() => { });
 		this.config.callbacks.onDeviceConnectedMessage = this.config.callbacks.onDeviceConnectedMessage || (() => { });
@@ -151,7 +151,7 @@ export class MessagingService {
 	getConnectedDevices(instanceId: string): Promise<Device[]> {
 		let devicesChannel = this.getDevicesChannel(instanceId);
 		return new Promise((resolve, reject) => {
-            let request = {
+			let request = {
 				channels: [devicesChannel],
 				includeUUIDs: true,
 				includeState: true
@@ -213,7 +213,8 @@ export class MessagingService {
 	}
 
 	private sendFilesInChunks(channel: string, messageType: string, filesPayload: FilesPayload, deviceIdMeta?: string): Promise<SendFilesStatus> {
-		let chunks = this.getChunks(filesPayload.files);
+		let finalFilesPayload = this.getFinalFilesPayload(filesPayload);
+		let chunks = this.getChunks(finalFilesPayload);
 		this.config.callbacks.onSendingChange(true);
 		return new Promise((resolve, reject) => {
 			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform, filesPayload.hmrMode)
@@ -226,6 +227,19 @@ export class MessagingService {
 					reject(err);
 				});
 		});
+	}
+
+	private getFinalFilesPayload(filesPayload: FilesPayload) {
+		let finalFiles = filesPayload.files;
+		var appPackageJson = finalFiles.find((filePayload) => filePayload.file === "package.json");
+		if (appPackageJson) {
+			const jsonContent = JSON.parse(appPackageJson.fileContents);
+			jsonContent.android = jsonContent.android || {};
+			jsonContent.android.forceLog = true;
+			appPackageJson.fileContents = JSON.stringify(jsonContent);
+		}
+
+		return finalFiles;
 	}
 
 	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string, hmrMode?: number): Promise<void> {
@@ -291,18 +305,18 @@ export class MessagingService {
 		let meta: any = {
 			msvi: Constants.МsviOS,
 			msva: Constants.MsvAndroid,
-            platform: targetPlatform,
+			platform: targetPlatform
 		};
 		if (deviceIdMeta) {
 			meta = {
 				msvi: Number.MAX_SAFE_INTEGER,
 				msva: Number.MAX_SAFE_INTEGER,
-                di: deviceIdMeta,
+				di: deviceIdMeta
 			}
-        }
-        if(hmrMode === 0 || hmrMode === 1) {
-            meta.hmrMode = hmrMode;
-        }
+		}
+		if(hmrMode === 0 || hmrMode === 1) {
+			meta.hmrMode = hmrMode;
+		}
 
 		return meta;
 	}
@@ -354,23 +368,23 @@ export class MessagingService {
 
 		this.config.getInitialFiles(device)
 			.then((initialPayload) => {
-				if (initialPayload.files && initialPayload.files.length) {
+				if (initialPayload && initialPayload.files && initialPayload.files.length) {
 					if (!initialPayload.deviceId && device) {
 						initialPayload.deviceId = device.id;
 					}
 
-                    initialPayload.hmrMode = hmrMode;
+					initialPayload.hmrMode = hmrMode;
 					this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", initialPayload);
 				}
 			});
 	}
 
 	private getConnectedDevicesDelayed(presenceEvent: any, delay: number, retryCount: number): void {
-        this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
-            if(!this.helpersService.isBrowserTabActive()) {
-                console.log("Page not visible, retrying in 2 seconds");
-                return this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount);
-            }
+		this.connectedDevicesTimeouts[presenceEvent.uuid] = setTimeout(() => {
+			if (!this.helpersService.isBrowserTabActive()) {
+				//Page not visible, retrying in 2 seconds
+				return this.getConnectedDevicesDelayed(presenceEvent, 2000, retryCount);
+			}
 
 			this.getConnectedDevices(this.config.instanceId).then(devices => {
 				let shouldRetry =
