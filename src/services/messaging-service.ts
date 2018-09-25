@@ -12,6 +12,7 @@ import { FilesPayload } from "../models/files-payload";
 import * as PubNub from "pubnub";
 import { SdkCallbacks } from "../models/sdk-callbacks";
 import { SendFilesStatus } from "../models/send-files-status";
+import { PreviewAppVersionsService } from "./preview-app-versions-service";
 
 export class MessagingService {
 	private static PubNubInitialized = false;
@@ -23,20 +24,25 @@ export class MessagingService {
 	private config: Config;
 	private helpersService: HelpersService;
 	private devicesService: DevicesService;
+	private previewAppVersionsService: PreviewAppVersionsService;
+	private minSupportedVersions: { android: number, ios: number };
 
 	constructor() {
 		this.helpersService = new HelpersService();
 		this.devicesService = new DevicesService(this.helpersService);
+		this.previewAppVersionsService = new PreviewAppVersionsService();
 		this.connectedDevicesTimeouts = {};
 	}
 
-	public initialize(config: Config): string {
+	public async initialize(config: Config): Promise<string> {
 		this.config = config;
 		this.ensureValidConfig();
 
 		if (MessagingService.PubNubInitialized) {
 			return;
 		}
+
+		this.minSupportedVersions = await this.previewAppVersionsService.getMinSupportedVersions(this.config.msvKey, this.config.msvEnv);
 
 		this.pubNub = new PubNub({
 			publishKey: this.config.pubnubPublishKey,
@@ -141,6 +147,22 @@ export class MessagingService {
 
 		if (!this.config.callbacks.onBiggerFilesUpload) {
 			throw new Error("onBiggerFilesUpload callback is required when creating a messaging service.");
+		}
+
+		if (!this.config.msvKey) {
+			throw new Error(`msvKey is required when getting min supported versions of preview apps. Valid values are: ${this.previewAppVersionsService.validMsvEnvs.join(", ")}.`);
+		}
+
+		if (!this.config.msvEnv) {
+			throw new Error(`msvEnv is required when getting min supported versions of preview apps. Valid values are: ${this.previewAppVersionsService.validMsvEnvs.join(", ")}.`);
+		}
+
+		if (!this.previewAppVersionsService.validMsvKeys.find(msvKey => this.helpersService.areCaseInsensitiveEqual(msvKey, this.config.msvKey))) {
+			throw new Error(`Invalid msvKey ${this.config.msvKey}. Valid values are: ${this.previewAppVersionsService.validMsvEnvs.join(", ")}.`);
+		}
+
+		if (!this.previewAppVersionsService.validMsvEnvs.find(env => this.helpersService.areCaseInsensitiveEqual(env, this.config.msvEnv))) {
+			throw new Error(`Invalid msvEnv ${this.config.msvEnv}. Valid values are: ${this.previewAppVersionsService.validMsvEnvs.join(", ")}.`);
 		}
 	}
 
@@ -303,8 +325,8 @@ export class MessagingService {
 
 	private getPubNubMetaData(deviceIdMeta?: string, targetPlatform: string = DevicePlatform.All, hmrMode?: number): any {
 		let meta: any = {
-			msvi: Constants.МsviOS,
-			msva: Constants.MsvAndroid,
+			msvi: this.minSupportedVersions.ios,
+			msva: this.minSupportedVersions.android,
 			platform: targetPlatform
 		};
 		if (deviceIdMeta) {
@@ -356,7 +378,8 @@ export class MessagingService {
 
 			device = this.devicesService.get(deviceConnectedMessage);
 			let isAndroid = this.helpersService.areCaseInsensitiveEqual(device.platform, "android");
-			let minimumSupportedVersion = isAndroid ? Constants.MsvAndroid : Constants.МsviOS;
+		
+			let minimumSupportedVersion = isAndroid ? this.minSupportedVersions.android : this.minSupportedVersions.ios;
 			if (!deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
 				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles, hmrMode }, data.publisher).then(() => { });

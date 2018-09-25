@@ -1,4 +1,4 @@
-const data = {
+exports.fallbackPreviewVersions = {
 	"staging": {
 		"playground": {
 			"android": 30,
@@ -29,7 +29,4 @@ const data = {
 			"ios": 19
 		}
 	}
-};
-export {
-	data
 };
