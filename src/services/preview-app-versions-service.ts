@@ -1,5 +1,5 @@
 import * as axios from "axios";
-import { data } from "../preview-app-versions";
+import { fallbackPreviewVersions } from "../preview-app-versions";
 
 export class PreviewAppVersionsService {
 	private static GET_VERSIONS_DATA_URL = "https://raw.githubusercontent.com/telerik/nativescript-preview-sdk/master/src/preview-app-versions.js";
@@ -9,7 +9,7 @@ export class PreviewAppVersionsService {
 
 	public async getMinSupportedVersions(key: string, env: string): Promise<{ android: number, ios: number }> {
 		const response = await this.get();
-		const result = this.parseResponse(response) || data;
+		const result = this.parseResponseSafe(response) || fallbackPreviewVersions;
 		return result[env][key];
 	}
 
@@ -21,16 +21,16 @@ export class PreviewAppVersionsService {
 		});
 	}
 
-	private parseResponse(response: any) {
+	private parseResponseSafe(response: any) {
 		try {
-			const parsedResponse = this.parseResponseCore(response.data);
+			const parsedResponse = this.parseResponse(response.data);
 			return JSON.parse(parsedResponse);
 		} catch (err) { }
 
 		return null;
 	}
 
-	private parseResponseCore(response: any): string {
+	private parseResponse(response: any): string {
 		const parts = response.split("\n");
 		// Replace first row with {
 		parts[0] = "{ ";
