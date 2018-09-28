@@ -1,32 +1,32 @@
 exports.fallbackPreviewVersions = {
 	"staging": {
 		"playground": {
-			"android": 30,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		},
 		"cli": {
-			"android": 30,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		}
 	},
 	"uat": {
 		"playground": {
-			"android": 30,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		},
 		"cli": {
-			"android": 30,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		}
 	},
 	"live": {
 		"playground": {
-			"android": 27,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		},
 		"cli": {
-			"android": 27,
-			"ios": 19
+			"android": 31,
+			"ios": 20
 		}
 	}
 };
