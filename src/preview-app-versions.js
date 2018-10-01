@@ -25,8 +25,8 @@ exports.fallbackPreviewVersions = {
 			"ios": 20
 		},
 		"cli": {
-			"android": 31,
-			"ios": 20
+			"android": 27,
+			"ios": 19
 		}
 	}
 };
