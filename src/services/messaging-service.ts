@@ -333,7 +333,8 @@ export class MessagingService {
 			meta = {
 				msvi: Number.MAX_SAFE_INTEGER,
 				msva: Number.MAX_SAFE_INTEGER,
-				di: deviceIdMeta
+				di: deviceIdMeta,
+				platform: targetPlatform
 			}
 		}
 		if(hmrMode === 0 || hmrMode === 1) {
@@ -382,7 +383,7 @@ export class MessagingService {
 			let minimumSupportedVersion = isAndroid ? this.minSupportedVersions.android : this.minSupportedVersions.ios;
 			if (!deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion) {
 				let deprecatedAppFiles = this.getDeprecatedAppContent();
-				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles, hmrMode }, data.publisher).then(() => { });
+				this.sendFilesInChunks(this.getDevicesChannel(instanceId), "initial sync chunk", { files: deprecatedAppFiles, hmrMode, platform: device.platform, deviceId: device.id }, data.publisher).then(() => { });
 				return;
 			}
 
