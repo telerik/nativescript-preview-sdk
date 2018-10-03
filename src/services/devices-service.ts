@@ -13,7 +13,7 @@ export class DevicesService {
 		device.model = this.getDeviceName(message);
 		device.name = message.name || device.model;
 		device.platform = message.platform;
-		device.previewAppVersion = message.friendlyVersion || message.version.toString();
+		device.previewAppVersion = message.friendlyVersion || (message.version ? message.version.toString() : null);
 		device.osVersion = `${isAndroid ? "Android" : "iOS"} ${message.osVersion}`;
 		device.plugins = this.getPlugins(message);
 		device.runtimeVersion = this.getRuntimeVersion(message);
