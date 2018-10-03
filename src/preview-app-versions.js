@@ -15,7 +15,7 @@ exports.fallbackPreviewVersions = {
 	},
 	"uat": {
 		"playground": {
-			"android": 31,
+			"android": 32,
 			"ios": 20
 		},
 		"cli": {
