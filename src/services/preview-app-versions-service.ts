@@ -31,10 +31,10 @@ export class PreviewAppVersionsService {
 	}
 
 	private parseResponse(response: any): string {
-		const parts = response.split("\n");
+		const parts = response.split("\n").map(x => x.trim());
 		// Replace first row with {
-		parts[0] = "{ ";
-		let result = parts.join("\n");
+		parts[0] = "{";
+		let result = parts.filter(x => x).join("\n");
 		// Remove last symbol - ;
 		result = result.substr(0, result.length - 1);
 

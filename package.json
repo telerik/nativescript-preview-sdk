@@ -1,6 +1,6 @@
 {
     "name": "nativescript-preview-sdk",
-    "version": "0.2.13",
+    "version": "0.2.14",
     "description": "Handles the communication to the NativeScript Preview Apps",
     "main": "src/nativescript-preview-sdk",
     "typings": "src/nativescript-preview-sdk.d.ts",
