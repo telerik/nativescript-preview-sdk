@@ -14,7 +14,7 @@ export class Config {
 	 * Can be staging, uat or live
 	 */
 	msvEnv: string;
-	showLoadingPage: boolean;
+	showLoadingPage?: boolean;
 	callbacks: SdkCallbacks;
 	getInitialFiles: (device?: Device) => Promise<FilesPayload>;
 	instanceId?: string;
