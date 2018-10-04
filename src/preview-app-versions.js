@@ -11,7 +11,7 @@ exports.fallbackPreviewVersions = {
 		"kinveyStudio": {
 			"android": 31,
 			"ios": 20
-		},
+		}
 	},
 	"uat": {
 		"playground": {
@@ -19,6 +19,10 @@ exports.fallbackPreviewVersions = {
 			"ios": 20
 		},
 		"cli": {
+			"android": 31,
+			"ios": 20
+		},
+		"kinveyStudio": {
 			"android": 31,
 			"ios": 20
 		}
@@ -31,15 +35,7 @@ exports.fallbackPreviewVersions = {
 		"cli": {
 			"android": 27,
 			"ios": 19
-		}
-	},
-	"test": {
-		"kinveyStudio": {
-			"android": 31,
-			"ios": 20
-		}
-	},
-	"production": {
+		},
 		"kinveyStudio": {
 			"android": 31,
 			"ios": 20
