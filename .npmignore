@@ -2,3 +2,4 @@
 *.map
 *.ts
 !*.d.ts
+package
