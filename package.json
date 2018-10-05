@@ -36,7 +36,7 @@
     },
     "scripts": {
         "tsc": "tsc",
-        "prepare": "tsc",
+        "prepack": "npm i && tsc",
         "tslint": "tslint -p tsconfig.json --type-check"
     }
 }
