@@ -80,7 +80,7 @@ export class MessagingService {
 					}
 
 					this.config.callbacks.onLogSdkMessage(`${this.config.instanceId} message received: log message ${logText}`);
-					this.config.callbacks.onLogMessage(data.message.log, deviceName);
+					this.config.callbacks.onLogMessage(data.message.log, deviceName, data.publisher);
 				} else if (data.message.type == "uncaught error") {
 					this.config.callbacks.onLogSdkMessage(`${this.config.instanceId} message received: uncaught error`);
 					this.config.callbacks.onUncaughtErrorMessage();

@@ -1,6 +1,6 @@
 {
     "name": "nativescript-preview-sdk",
-    "version": "0.2.18",
+    "version": "0.3.0",
     "description": "Handles the communication to the NativeScript Preview Apps",
     "main": "src/nativescript-preview-sdk",
     "typings": "src/nativescript-preview-sdk.d.ts",
@@ -28,9 +28,15 @@
         "axios": "0.18.0",
         "btoa": "1.2.1",
         "pubnub": "4.21.2",
-        "shortid": "2.2.12"
+        "shortid": "2.2.12",
+        "tslint": "5.4.3"
     },
     "devDependencies": {
         "typescript": "3.0.3"
+    },
+    "scripts": {
+        "tsc": "tsc",
+        "prepare": "tsc",
+        "tslint": "tslint -p tsconfig.json --type-check"
     }
 }
