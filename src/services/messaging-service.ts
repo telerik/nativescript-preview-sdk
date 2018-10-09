@@ -406,7 +406,9 @@ export class MessagingService {
 				initialPayload.deviceId = device.id;
 			}
 
-			initialPayload.hmrMode = hmrMode;
+			if (initialPayload.hmrMode === undefined || initialPayload.hmrMode === null) {
+				initialPayload.hmrMode = hmrMode;
+			}
 			await this.sendFilesInChunks(devicesChannel, Constants.InitialSyncMessageType, initialPayload, initialPayload.deviceId);
 		}
 	}
