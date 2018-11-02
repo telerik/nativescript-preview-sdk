@@ -1,12 +1,12 @@
 exports.fallbackPreviewVersions = {
 	"staging": {
 		"playground": {
-			"android": 32,
-			"ios": 20
+			"android": 33,
+			"ios": 21
 		},
 		"cli": {
-			"android": 32,
-			"ios": 20
+			"android": 33,
+			"ios": 21
 		},
 		"kinveyStudio": {
 			"android": 32,
@@ -15,12 +15,12 @@ exports.fallbackPreviewVersions = {
 	},
 	"uat": {
 		"playground": {
-			"android": 32,
-			"ios": 20
+			"android": 33,
+			"ios": 21
 		},
 		"cli": {
-			"android": 32,
-			"ios": 20
+			"android": 33,
+			"ios": 21
 		},
 		"kinveyStudio": {
 			"android": 32,
@@ -29,12 +29,12 @@ exports.fallbackPreviewVersions = {
 	},
 	"live": {
 		"playground": {
-			"android": 32,
-			"ios": 20
+			"android": 33,
+			"ios": 21
 		},
 		"cli": {
-			"android": 32,
-			"ios": 19
+			"android": 33,
+			"ios": 21
 		},
 		"kinveyStudio": {
 			"android": 32,
