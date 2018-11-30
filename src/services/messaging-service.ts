@@ -115,6 +115,7 @@ export class MessagingService {
 		this.pubNub.removeListener(this.pubNubListenerParams);
 		this.pubNub.unsubscribe(this.pubNubSubscribeParams);
 		this.pubNub.stop();
+		MessagingService.PubNubInitialized = false;
 		for (let uuid in this.connectedDevicesTimeouts) {
 			clearTimeout(this.connectedDevicesTimeouts[uuid]);
 		}
