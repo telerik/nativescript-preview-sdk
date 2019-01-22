@@ -10,6 +10,7 @@ export class DevicesService {
 		let isAndroid = this.helpers.areCaseInsensitiveEqual(message.platform, "android");
 		let device = new Device();
 		device.id = message.deviceId;
+		device.uniqueId = message.deviceUniqueId;
 		device.model = this.getDeviceName(message);
 		device.name = message.name || device.model;
 		device.platform = message.platform;

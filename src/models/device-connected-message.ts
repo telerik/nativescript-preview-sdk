@@ -1,5 +1,6 @@
 export class DeviceConnectedMessage {
 	deviceId: string;
+	deviceUniqueId: string;
 	deviceName: string;
 	name: string;
 	osVersion: string;
