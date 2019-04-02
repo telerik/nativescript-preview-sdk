@@ -14,9 +14,10 @@ export class Config {
 	 * Can be staging, uat or live
 	 */
 	msvEnv: string;
-	showLoadingPage?: boolean;
 	callbacks: SdkCallbacks;
 	getInitialFiles: (device?: Device) => Promise<FilesPayload>;
 	instanceId?: string;
 	connectedDevices?: ConnectedDevices;
+	previewAppStoreId?: string;
+	previewAppGooglePlayId?: string;
 }
