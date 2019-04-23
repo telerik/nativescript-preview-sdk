@@ -392,7 +392,7 @@ export class MessagingService {
 				platform: targetPlatform
 			}
 		}
-		if(hmrMode === 0 || hmrMode === 1) {
+		if (hmrMode === 0 || hmrMode === 1) {
 			meta.hmrMode = hmrMode;
 		}
 
@@ -439,27 +439,14 @@ export class MessagingService {
 			const minimumSupportedVersion = isAndroid ? this.minSupportedVersions.android : this.minSupportedVersions.ios;
 			const showDeprecatedPage = !deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion;
 			if (showDeprecatedPage) {
-<<<<<<< HEAD
 				const payloads = this.appContentManager.getDeprecatedAppPayloads(this.config.previewAppStoreId, this.config.previewAppGooglePlayId);
-				await this.showPage(devicesChannel, device, payloads, { hmrMode, publisher: data.publisher });
-=======
-				const payloads = this.appContentManager.getDeprecatedAppPayloads();
 				await this.showPage(devicesChannel, device, payloads, protocol, { hmrMode, publisher: data.publisher });
->>>>>>> Use MessagePack to encode large sessions
 				return;
 			}
 
 			this.config.callbacks.onLogSdkMessage(`${instanceId} message received: send files`);
 		}
 
-<<<<<<< HEAD
-=======
-		if (this.config.showLoadingPage) {
-			const payloads = this.appContentManager.getLoadingAppPayloads();
-			await this.showPage(devicesChannel, device, payloads, protocol, { hmrMode, publisher: data.publisher });
-		}
-
->>>>>>> Use MessagePack to encode large sessions
 		const initialPayload = await this.config.getInitialFiles(device);
 		if (initialPayload && initialPayload.files && initialPayload.files.length) {
 			if (!initialPayload.deviceId && device) {
