@@ -71,7 +71,7 @@ export class HelpersService {
 			return array;
 		}
 
-		if (this.isBrowser() && "TextEncoder" in window) {
+		if (this.isBrowser() && ("TextEncoder" in window)) {
 			return new TextEncoder().encode(str);
 		}
 
