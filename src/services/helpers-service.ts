@@ -1,5 +1,6 @@
 import * as shortId from "shortid";
 import * as nodeBtoa from "btoa";
+import * as nodeAtob from "atob";
 import * as md5 from "js-md5";
 
 declare function escape(s: string): string;
@@ -19,7 +20,7 @@ export class HelpersService {
 	}
 
 	isBrowserTabActive() {
-		if(!this.isBrowser()) {
+		if (!this.isBrowser()) {
 			// not in browser
 			return true;
 		}
@@ -54,14 +55,14 @@ export class HelpersService {
 		if (this.isBrowser()) {
 			return decodeURIComponent(escape(window.atob(input)));
 		} else {
-			return decodeURIComponent(escape(Buffer.from(input, "base64").toString()));
+			return decodeURIComponent(escape(nodeAtob(input)));
 		}
 	}
 
 	// https://github.com/google/closure-library/blob/8598d87242af59aac233270742c8984e2b2bdbe0/closure/goog/crypt/crypt.js#L117-L143
 	stringToByteArray(str: string, base64Encoded: boolean = false): Uint8Array {
 		if (base64Encoded === true) {
-			var raw = this.isBrowser() ? window.atob(str) : Buffer.from(str, "base64").toString();
+			var raw = this.isBrowser() ? window.atob(str) : nodeAtob(str);
 			var rawLength = raw.length;
 			var array = new Uint8Array(new ArrayBuffer(rawLength));
 			for (var i = 0; i < rawLength; i++) {
@@ -70,7 +71,7 @@ export class HelpersService {
 			return array;
 		}
 
-		if ("TextEncoder" in window) {
+		if (this.isBrowser() && "TextEncoder" in window) {
 			return new TextEncoder().encode(str);
 		}
 
@@ -113,7 +114,7 @@ export class HelpersService {
 		return result;
 	}
 
-	calculateMD5(str: string|Uint8Array): string {
+	calculateMD5(str: string | Uint8Array): string {
 		return md5(str);
 	}
 }
