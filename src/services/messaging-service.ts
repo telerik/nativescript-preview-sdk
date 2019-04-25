@@ -45,7 +45,7 @@ export class MessagingService {
 		this.connectedDevicesTimeouts = {};
 	}
 
-	public async initialize(config: Config, largeFilesProtocol: string): Promise<string> {
+	public async initialize(config: Config): Promise<string> {
 		this.config = config;
 		this.ensureValidConfig();
 
@@ -68,7 +68,7 @@ export class MessagingService {
 			},
 			message: (data: any) => {
 				if (data.message.type == "send files") {
-					this.handleSendInitialFiles(data, this.config.instanceId, 0, largeFilesProtocol);
+					this.handleSendInitialFiles(data, this.config.instanceId, 0);
 				} else if (data.message.type == "restart app") {
 					this.config.callbacks.onLogSdkMessage(`${this.config.instanceId} message received: restart app`);
 					this.config.callbacks.onRestartMessage();
@@ -131,8 +131,8 @@ export class MessagingService {
 		}
 	}
 
-	public applyChanges(instanceId: string, filesPayload: FilesPayload, largeFilesProtocol: string, done: (err: Error) => void): void {
-		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", filesPayload, largeFilesProtocol, filesPayload.deviceId)
+	public applyChanges(instanceId: string, filesPayload: FilesPayload, done: (err: Error) => void): void {
+		this.sendFilesInChunks(this.getDevicesChannel(instanceId), "files chunk", filesPayload, filesPayload.deviceId)
 			.then(() => done(null))
 			.catch(e => done(e));
 	}
@@ -180,8 +180,8 @@ export class MessagingService {
 		}
 	}
 
-	sendInitialFiles(instanceId: string, largeFilesProtocol: string, hmrMode?: number) {
-		this.handleSendInitialFiles({}, instanceId, 0, largeFilesProtocol, true, hmrMode);
+	sendInitialFiles(instanceId: string, hmrMode?: number) {
+		this.handleSendInitialFiles({}, instanceId, 0, true, hmrMode);
 	}
 
 	getConnectedDevices(instanceId: string): Promise<Device[]> {
@@ -248,12 +248,12 @@ export class MessagingService {
 		});
 	}
 
-	private sendFilesInChunks(channel: string, messageType: string, filesPayload: FilesPayload, protocol: string, deviceIdMeta?: string): Promise<SendFilesStatus> {
+	private sendFilesInChunks(channel: string, messageType: string, filesPayload: FilesPayload, deviceIdMeta?: string): Promise<SendFilesStatus> {
 		let finalFilesPayload = this.getFinalFilesPayload(filesPayload);
 		let chunks = this.getChunks(finalFilesPayload);
 		this.config.callbacks.onSendingChange(true);
 		return new Promise((resolve, reject) => {
-			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform, protocol, filesPayload.hmrMode)
+			this.getPublishPromise(channel, messageType, chunks, deviceIdMeta, filesPayload.platform, filesPayload.hmrMode)
 				.then(() => {
 					this.config.callbacks.onSendingChange(false);
 					resolve({ error: false });
@@ -278,7 +278,7 @@ export class MessagingService {
 		return finalFiles;
 	}
 
-	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string, protocol: string, hmrMode?: number): Promise<void> {
+	private getPublishPromise(channel: string, messageType: string, chunks: FileChunk[], deviceIdMeta: string, platform: string, hmrMode?: number): Promise<void> {
 		return new Promise((resolve, reject) => {
 			if (!chunks.length) {
 				return resolve();
@@ -314,7 +314,7 @@ export class MessagingService {
 				let data = chunks.map(chunk => chunk.data).join("");
 
 				let requestBody: Uint8Array;
-				if (protocol === MessagingService.LARGE_SESSIONS_PROTOCOL) {
+				if (this.config.largeFilesProtocol === MessagingService.LARGE_SESSIONS_PROTOCOL) {
 					let decoded = this.helpersService.base64Decode(data);
 					let parts: FilePayload[] = JSON.parse(decoded);
 
@@ -357,8 +357,8 @@ export class MessagingService {
 							"remoteDataUrl": uploadedFilesLocation,
 						};
 
-						if (typeof protocol !== "undefined") {
-							message["protocol"] = protocol;
+						if (typeof this.config.largeFilesProtocol !== "undefined") {
+							message["protocol"] = this.config.largeFilesProtocol;
 						}
 
 						this.pubNub.publish({
@@ -418,7 +418,7 @@ export class MessagingService {
 		return chunks;
 	}
 
-	private async handleSendInitialFiles(data: any, instanceId: string, retries: number, protocol: string, skipDeviceCheck: boolean = false, hmrMode?: number): Promise<void> {
+	private async handleSendInitialFiles(data: any, instanceId: string, retries: number, skipDeviceCheck: boolean = false, hmrMode?: number): Promise<void> {
 		let device: Device = null;
 		if (retries > 10) {
 			this.config.callbacks.onLogSdkMessage(`${instanceId} Exception: didn't receive device connected message after ${retries} retries`);
@@ -430,7 +430,7 @@ export class MessagingService {
 		if (!skipDeviceCheck) {
 			let deviceConnectedMessage = this.config.connectedDevices[data.publisher];
 			if (!deviceConnectedMessage) {
-				setTimeout(() => this.handleSendInitialFiles(data, instanceId, ++retries, protocol, false, hmrMode), 1000);
+				setTimeout(() => this.handleSendInitialFiles(data, instanceId, ++retries, false, hmrMode), 1000);
 				return;
 			}
 
@@ -440,7 +440,7 @@ export class MessagingService {
 			const showDeprecatedPage = !deviceConnectedMessage.version || !deviceConnectedMessage.platform || deviceConnectedMessage.version < minimumSupportedVersion;
 			if (showDeprecatedPage) {
 				const payloads = this.appContentManager.getDeprecatedAppPayloads(this.config.previewAppStoreId, this.config.previewAppGooglePlayId);
-				await this.showPage(devicesChannel, device, payloads, protocol, { hmrMode, publisher: data.publisher });
+				await this.showPage(devicesChannel, device, payloads, { hmrMode, publisher: data.publisher });
 				return;
 			}
 
@@ -456,7 +456,7 @@ export class MessagingService {
 			if (initialPayload.hmrMode === undefined || initialPayload.hmrMode === null) {
 				initialPayload.hmrMode = hmrMode;
 			}
-			await this.sendFilesInChunks(devicesChannel, Constants.InitialSyncMessageType, initialPayload, protocol, initialPayload.deviceId);
+			await this.sendFilesInChunks(devicesChannel, Constants.InitialSyncMessageType, initialPayload, initialPayload.deviceId);
 		}
 	}
 
@@ -482,14 +482,14 @@ export class MessagingService {
 		}), delay);
 	}
 
-	private async showPage(devicesChannel: string, device: Device, files: FilePayload[], protocol: string, opts: { hmrMode: number, publisher: string }): Promise<void> {
+	private async showPage(devicesChannel: string, device: Device, files: FilePayload[], opts: { hmrMode: number, publisher: string }): Promise<void> {
 		const payload = {
 			files,
 			hmrMode: opts.hmrMode,
 			platform: device.platform,
 			deviceId: device.id
 		};
-		await this.sendFilesInChunks(devicesChannel, Constants.InitialSyncMessageType, payload, protocol, opts.publisher);
+		await this.sendFilesInChunks(devicesChannel, Constants.InitialSyncMessageType, payload, opts.publisher);
 	}
 
 	private getDevicesChannel(instanceId: string): string {

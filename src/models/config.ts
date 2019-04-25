@@ -4,6 +4,7 @@ import { ConnectedDevices } from "./connected-devices";
 import { Device } from "./device";
 
 export class Config {
+	largeFilesProtocol?: string;
 	pubnubPublishKey: string;
 	pubnubSubscribeKey: string;
 	/**
