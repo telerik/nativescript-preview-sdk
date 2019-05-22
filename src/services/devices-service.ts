@@ -118,6 +118,7 @@ export class DevicesService {
 			}
 
 			delete parsedPackage.dependencies["PlayLiveSync"];
+			delete parsedPackage.dependencies["nativescript-play-livesync"];
 
 			return JSON.stringify(parsedPackage.dependencies, null, 2);
 		} catch (e) {
