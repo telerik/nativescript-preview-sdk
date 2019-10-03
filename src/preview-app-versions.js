@@ -29,8 +29,8 @@ exports.fallbackPreviewVersions = {
 	},
 	"live": {
 		"playground": {
-			"android": 42,
-			"ios": 33
+			"android": 46,
+			"ios": 38
 		},
 		"cli": {
 			"android": 42,
