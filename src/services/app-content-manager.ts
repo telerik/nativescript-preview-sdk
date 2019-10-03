@@ -27,8 +27,8 @@ export class AppContentManager {
 			Button = require("tns-core-modules/ui/button").Button,
 			StackLayout = require("tns-core-modules/ui/layouts/stack-layout").StackLayout,
 			FlexboxLayout = require("tns-core-modules/ui/layouts/flexbox-layout").FlexboxLayout,
-			utils = require("tns-core-modules/utils/utils");
-		application.start({
+            utils = require("tns-core-modules/utils/utils");
+		application.run({
 			create: () => {
 				let page = new Page();
 				page.css = ".main-container { background-color: #0c2834; flex-direction: column; color: #fff; align-items: center; justify-content: center; } .header { padding-top: 50%; font-size: 24; } .labelContainer { padding: 20% 50% 60% 50%; } .label { color: #a0b4bd; text-align: center; } .button { background-color: #4456fe; width: 70%; height: 120px; }";
