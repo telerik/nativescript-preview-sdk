@@ -25,7 +25,7 @@
         "@types/pubnub": "4.0.2",
         "@types/shortid": "0.0.29",
         "atob": "2.1.2",
-        "axios": "0.18.0",
+        "axios": "0.18.1",
         "btoa": "1.2.1",
         "js-md5": "0.7.3",
         "msgpack-lite": "0.1.26",
