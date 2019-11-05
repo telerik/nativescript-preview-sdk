@@ -1,8 +1,8 @@
 exports.fallbackPreviewVersions = {
 	"staging": {
 		"playground": {
-			"android": 42,
-			"ios": 33
+			"android": 47,
+			"ios": 39
 		},
 		"cli": {
 			"android": 42,
@@ -15,8 +15,8 @@ exports.fallbackPreviewVersions = {
 	},
 	"uat": {
 		"playground": {
-			"android": 46,
-			"ios": 38
+			"android": 47,
+			"ios": 39
 		},
 		"cli": {
 			"android": 42,
@@ -29,8 +29,8 @@ exports.fallbackPreviewVersions = {
 	},
 	"live": {
 		"playground": {
-			"android": 46,
-			"ios": 38
+			"android": 47,
+			"ios": 39
 		},
 		"cli": {
 			"android": 42,
