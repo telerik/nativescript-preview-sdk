@@ -9,8 +9,8 @@ exports.fallbackPreviewVersions = {
 			"ios": 33
 		},
 		"kinveyStudio": {
-			"android": 10,
-			"ios": 10
+			"android": 11,
+			"ios": 11
 		}
 	},
 	"uat": {
@@ -23,8 +23,8 @@ exports.fallbackPreviewVersions = {
 			"ios": 33
 		},
 		"kinveyStudio": {
-			"android": 10,
-			"ios": 10
+			"android": 11,
+			"ios": 11
 		}
 	},
 	"live": {
@@ -37,8 +37,8 @@ exports.fallbackPreviewVersions = {
 			"ios": 33
 		},
 		"kinveyStudio": {
-			"android": 10,
-			"ios": 10
+			"android": 11,
+			"ios": 11
 		}
 	}
 };
