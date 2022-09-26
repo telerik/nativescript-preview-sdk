@@ -29,7 +29,7 @@
         "btoa": "1.2.1",
         "js-md5": "0.7.3",
         "msgpack-lite": "0.1.26",
-        "pubnub": "4.21.2",
+        "pubnub": "4.37.0",
         "shortid": "2.2.12",
         "tslint": "5.4.3"
     },
